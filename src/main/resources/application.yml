@@ -1,5 +1,6 @@
 logging:
   level:
+    vue.til: debug
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
 #    org.apache.coyote.http11: debug
@@ -12,9 +13,15 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
 #        dialect: org.hibernate.dialect.MariaDBDialect
+
+jwt:
+  secret-key: 4sD2$2@G1mYp9r!0v#8aC5bN6fT7wE3x
+  expiration: 3600000
+  header: Authorization
+  prefix: "Bearer "
 
