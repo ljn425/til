@@ -12,10 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vue.til.domain.Member;
-import vue.til.dto.CustomUserDetails;
-import vue.til.dto.LoginRequestDto;
-import vue.til.dto.LoginResponseDto;
-import vue.til.dto.MemberFormDto;
+import vue.til.dto.*;
 import vue.til.enums.LoginErrorMsg;
 import vue.til.repository.MemberRepository;
 import vue.til.util.JwtTokenUtil;
@@ -30,13 +27,14 @@ public class MemberService {
     private final JwtTokenUtil jwtTokenUtil;
 
     @Transactional
-    public Member save(MemberFormDto memberFormDto){
+    public MemberResponseDto save(MemberFormDto memberFormDto){
         Member member = Member.builder()
                 .username(memberFormDto.getUsername())
                 .password(passwordEncoder.encode(memberFormDto.getPassword()))
                 .nickname(memberFormDto.getNickname())
                 .build();
-        return memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+        return new MemberResponseDto(savedMember);
     }
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto){

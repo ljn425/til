@@ -3,7 +3,6 @@ package vue.til.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,11 +16,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,7 +26,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenUtil jwtTokenUtil;
 
-    private List<String> excludedUrls = Arrays.asList("/api/login", "/api/signup");
+    private List<String> excludedUrls = Arrays.asList("/api/login", "/api/signup", "/swagger-ui/", "/v3/api-docs/");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -39,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // URI 체크
             String requestUrl = request.getRequestURI();
+            log.debug("requestUrl = {}", requestUrl);
             if (isUrlExcluded(requestUrl)) {
                 filterChain.doFilter(request, response);
                 return;
@@ -67,15 +63,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (authentication != null) {
                     log.debug("인증성공");
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    request.setAttribute("username", username);
                     filterChain.doFilter(request, response);
                 }
             } else {
-                throw new IllegalArgumentException("존재하지 않는 회원입니다.");
+                throw new IllegalArgumentException("Token error");
             }
         } catch (Exception e) {
-            ErrorResponseDto errorResponseDto = new ErrorResponseDto();
-            errorResponseDto.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            errorResponseDto.setMessage(e.getMessage());
+            ErrorResponseDto errorResponseDto = new ErrorResponseDto(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
 
             ObjectMapper objectMapper = new ObjectMapper();
             String errorResponseDtoJson = objectMapper.writeValueAsString(errorResponseDto);

@@ -1,28 +1,29 @@
 package vue.til.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import vue.til.domain.Member;
 import vue.til.domain.Post;
-import vue.til.dto.LoginRequestDto;
-import vue.til.dto.LoginResponseDto;
-import vue.til.dto.MemberFormDto;
-import vue.til.dto.PostListDto;
+import vue.til.dto.*;
 import vue.til.service.MemberService;
 import vue.til.service.PostService;
 import vue.til.util.JwtTokenUtil;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api")
@@ -30,7 +31,6 @@ public class APIController {
 
     private final MemberService memberService;
     private final PostService postService;
-    private final JwtTokenUtil jwtTokenUtil;
 
     @Operation(summary = "회원가입", description = "회원 정보가 저장됩니다.", tags = { "API Controller" })
     @ApiResponses({
@@ -41,10 +41,8 @@ public class APIController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @PostMapping("/signup")
-    public ResponseEntity<Member> signup(
-            @RequestBody MemberFormDto memberFormDto){
-        Member savedMember = memberService.save(memberFormDto);
-        return ResponseEntity.ok(savedMember);
+    public ResponseEntity<MemberResponseDto> signup(@RequestBody MemberFormDto memberFormDto){
+        return ResponseEntity.ok(memberService.save(memberFormDto));
     }
 
     @PostMapping("/login")
@@ -57,18 +55,18 @@ public class APIController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<PostListDto> posts(@RequestHeader("Authorization") String token) {
-        System.out.println("token: "+ token);
-        //토큰 유효성 검사
-//        Claims claims = jwtTokenUtil.parseToken(token);
-//        System.out.println("parse : " + claims);
-
-//        boolean result = jwtTokenUtil.validateToken(token);
-//        System.out.println("result : " + result);
-
-
-        List<Post> posts = postService.findAll();
+    public ResponseEntity<PostListDto> posts(HttpServletRequest request) {
+        String username = (String) request.getAttribute("username");
+        List<Post> posts = postService.findAllByMember(username);
         PostListDto postListDto = new PostListDto(posts);
         return ResponseEntity.ok(postListDto);
+    }
+
+    @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+    @PostMapping("/posts")
+    public ResponseEntity<PostDto> posts(HttpServletRequest request, @RequestBody PostFormDto postFormDto) {
+        String username = (String) request.getAttribute("username");
+        Post post = postService.save(username, postFormDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new PostDto(post));
     }
 }
