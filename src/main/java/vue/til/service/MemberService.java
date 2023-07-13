@@ -3,17 +3,12 @@ package vue.til.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vue.til.domain.Member;
 import vue.til.dto.*;
-import vue.til.enums.LoginErrorMsg;
+import vue.til.exception.enums.LoginErrorMsg;
 import vue.til.repository.MemberRepository;
 import vue.til.util.JwtTokenUtil;
 

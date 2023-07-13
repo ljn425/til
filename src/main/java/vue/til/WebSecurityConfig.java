@@ -3,6 +3,7 @@ package vue.til;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
@@ -32,7 +33,7 @@ public class WebSecurityConfig{
                 .formLogin().disable() // 시큐리티 기본 로그인페이지 방지
                 .cors(this::configureCors)// CORS 설정
                 .authorizeRequests()
-                .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // 설정된 페이지는 아무사용자나 접근가능                .anyRequest().authenticated()
+                .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // 설정된 페이지는 아무사용자나 접근가능
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf().disable(); //CSRF 방지

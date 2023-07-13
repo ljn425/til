@@ -1,4 +1,4 @@
-package vue.til.enums;
+package vue.til.exception.enums;
 
 public enum LoginErrorMsg {
     INVALID_USERNAME("존재하지 않는 회원입니다."),
