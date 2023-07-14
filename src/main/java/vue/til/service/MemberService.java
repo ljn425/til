@@ -2,13 +2,16 @@ package vue.til.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vue.til.domain.Member;
-import vue.til.dto.*;
-import vue.til.exception.enums.LoginErrorMsg;
+import vue.til.dto.LoginRequestDto;
+import vue.til.dto.LoginResponseDto;
+import vue.til.dto.MemberFormDto;
+import vue.til.dto.MemberResponseDto;
 import vue.til.repository.MemberRepository;
 import vue.til.util.JwtTokenUtil;
 
@@ -21,6 +24,13 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
 
+    private final MessageSource messageSource;
+
+    /**
+     * 회원가입
+     * @param memberFormDto
+     * @return 회원가입된 회원
+     */
     @Transactional
     public MemberResponseDto save(MemberFormDto memberFormDto){
         Member member = Member.builder()
@@ -32,6 +42,11 @@ public class MemberService {
         return new MemberResponseDto(savedMember);
     }
 
+    /**
+     * 로그인
+     * @param loginRequestDto
+     * @return 로그인 결과
+     */
     public LoginResponseDto login(LoginRequestDto loginRequestDto){
         LoginResponseDto loginResponseDto = new LoginResponseDto();
 
@@ -39,11 +54,11 @@ public class MemberService {
 
         if (findMember == null) {
             // 회원이 존재하지 않을 때
-            setLoginResponse(loginResponseDto, false, LoginErrorMsg.INVALID_USERNAME.getMsg(), HttpStatus.UNAUTHORIZED);
+            setLoginResponse(loginResponseDto, false, messageSource.getMessage("login.invalid.username", null, null), HttpStatus.UNAUTHORIZED);
         } else {
             if (passwordEncoder.matches(loginRequestDto.getPassword(), findMember.getPassword())) {
                 // 로그인 성공
-                setLoginResponse(loginResponseDto, true, LoginErrorMsg.SUCCESS.getMsg(), HttpStatus.OK);
+                setLoginResponse(loginResponseDto, true, messageSource.getMessage("login.success", null, null), HttpStatus.OK);
                 setLoginResponseUser(loginResponseDto, findMember);
                 // JWT Token 발행
                 String token = jwtTokenUtil.generateToken(findMember.getUsername());
@@ -51,16 +66,21 @@ public class MemberService {
                 loginResponseDto.setToken(token);
             } else {
                 // 비밀번호 불일치
-                setLoginResponse(loginResponseDto, false, LoginErrorMsg.INVALID_PASSWORD.getMsg(), HttpStatus.BAD_REQUEST);
+                setLoginResponse(loginResponseDto, false, messageSource.getMessage("login.invalid.password", null, null), HttpStatus.BAD_REQUEST);
             }
         }
 
         return loginResponseDto;
     }
 
+    /**
+     * 회원정보 수정
+     * @param username
+     * @return 수정된 회원정보
+     */
     public Member findByUsername(String username) {
         return memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new IllegalArgumentException(messageSource.getMessage("login.invalid.username", null, null)));
     }
 
     private void setLoginResponse(LoginResponseDto loginResponseDto, boolean success, String message, HttpStatus httpStatus) {

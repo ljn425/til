@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class PostDto {
+    @Schema(description = "Post id", example = "1")
     private Long id;
     @Schema(description = "Post title", example = "Example Title")
     private String title;

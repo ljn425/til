@@ -1,24 +1,16 @@
 package vue.til.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
-import vue.til.domain.Member;
 import vue.til.domain.Post;
 import vue.til.dto.*;
 import vue.til.service.MemberService;
 import vue.til.service.PostService;
-import vue.til.util.JwtTokenUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -28,7 +20,6 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/api")
 public class APIController {
-
     private final MemberService memberService;
     private final PostService postService;
 
@@ -64,12 +55,25 @@ public class APIController {
         return ResponseEntity.ok(postListDto);
     }
 
+    @Operation(summary = "특정 글 조회", description = "특정 글을 조회합니다.", security = { @SecurityRequirement(name = "bearer-key") }, tags = "Post")
+    @GetMapping("/posts/{id}")
+    public ResponseEntity<PostDto> post(@PathVariable Long id) {
+        return ResponseEntity.ok(postService.findById(id));
+    }
+
     @Operation(summary = "글 작성", description = "작성한 글을 저장합니다.", security = { @SecurityRequirement(name = "bearer-key") }, tags = "Post")
     @PostMapping("/posts")
     public ResponseEntity<PostDto> posts(HttpServletRequest request, @RequestBody PostFormDto postFormDto) {
         String username = (String) request.getAttribute("username");
         Post post = postService.save(username, postFormDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new PostDto(post));
+    }
+
+    @Operation(summary = "글 수정", description = "작성한 글을 수정합니다.", security = { @SecurityRequirement(name = "bearer-key") }, tags = "Post")
+    @PutMapping("/posts/{id}")
+    public ResponseEntity<PostDto> updatePost(@PathVariable Long id, @RequestBody PostFormDto postFormDto) {
+        Post post = postService.update(id, postFormDto);
+        return ResponseEntity.ok(new PostDto(post));
     }
 
     @Operation(summary = "글 삭제", description = "작성한 글을 삭제합니다.", security = { @SecurityRequirement(name = "bearer-key") }, tags = "Post")
@@ -79,4 +83,5 @@ public class APIController {
         postService.delete(id);
         return ResponseEntity.ok("success");
     }
+
 }
